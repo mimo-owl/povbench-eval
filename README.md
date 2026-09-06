@@ -277,23 +277,6 @@ Alternatively, pass them as environment variables inline:
 GEMINI_API_KEY=<key> python evaluation/run_vlm_eval.py ...
 ```
 
-When running Gemini across several workers you may give each one its own key as
-`GEMINI_API_KEY_<worker_id>`; a worker falls back to `GEMINI_API_KEY`, then
-`GOOGLE_API_KEY`.
-
-### Backend-specific setup
-
-Most `--vlm` choices need nothing beyond the two API keys. These do:
-
-| Backend | Environment variables |
-|---|---|
-| `qwen3vl-8b-vllm`, `qwen3vl-32b` | `VLLM_BASE_URL` (default `http://localhost:8000/v1`), `VLLM_MODEL` |
-| `molmopoint-8b` | `MOLMO_MODEL` — needs `transformers==4.57.1` in a separate environment |
-| `robopoint` | `ROBOPOINT_MODEL` — install the external `robopoint` package |
-| `roborefer-8b`, `roborefer-8b-depth` | `ROBOREFER_URL` (default `http://localhost:25547`) |
-| `internvl3-*` | `INTERNVL_MODEL` |
-| `llama32-vision-*` | `LLAMA_MODEL` — requires accepting the model licence on the Hub |
-
 ---
 
 ## Citation
