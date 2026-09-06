@@ -23,7 +23,7 @@ evaluation/
 ├── run_vlm_eval_ab2.py      # O&A-Plot
 ├── run_vlm_eval_ab3.py      # CoT
 ├── run_vlm_eval_ab4.py      # Spatial-CoT
-├── eval_results.py          # Compute metrics (clamped L2 + verified-surface GT + response rate)
+├── eval_results.py          # Compute metrics (clamped L2 + response rate)
 ├── aggregate_runs.py        # Aggregate multiple runs into a long CSV
 └── run_all_eval.py          # Batch-evaluate every run + write summary.csv
 ```
@@ -168,7 +168,6 @@ python evaluation/eval_results.py \
 | `--predictions` | *(required)* | A prediction directory (single- or multi-worker output), or a single `predictions.json` file. |
 | `--dataset-dir` | *(required)* | Dataset directory (for ground-truth positions). |
 | `--output-dir` | *(required)* | Where to write `eval_results.json` and plots. |
-| `--no-verified-surface` | *(off)* | Use the raw stored GT placements instead of the stage-3 surface-verified GT (the default, matching the paper). |
 | `--no-plot` | *(off)* | Skip plot and overlay-image generation (metrics only). |
 
 ### Models evaluated

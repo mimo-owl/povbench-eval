@@ -3,7 +3,7 @@ Batch runner for the clamped evaluation.
 
 Runs eval_results.evaluate() over every saved prediction set under
 eval_results/ WITHOUT re-running any VLM. For each run directory it writes
-a per-run `eval_results.json` (verified-surface GT, symmetric clamp,
+a per-run `eval_results.json` (symmetric clamp,
 response-rate metric), then compiles a consolidated summary.
 
 Output files are defined here (program-side) and are always written on run:
@@ -72,10 +72,9 @@ def main(pred_root: Path, dataset_dir: Path) -> None:
     for d in run_dirs:
         model, run = _label(d.name)
         print(f"──── {d.name} (model={model}, run={run}) ────")
-        # verified-surface GT is the default in eval_results.evaluate()
         er.evaluate(
             predictions_path=d, dataset_dir=dataset_dir, output_dir=d,
-            plot=False, use_verified_surface=True,
+            plot=False,
         )
         summary = json.loads((d / "eval_results.json").read_text())["summary"]
         ov = summary["overall"]
@@ -128,10 +127,7 @@ def main(pred_root: Path, dataset_dir: Path) -> None:
 
     # ── write Markdown ─────────────────────────────────────────────────────────
     lines = []
-    lines.append("# Clamped evaluation summary\n")
-    lines.append("Verified-surface GT (`gt_surface_corrected=True`), symmetric [0,1] "
-                 "clamp on prediction and GT. mean L2 over answered instances; "
-                 "response rate = n_ok / n_total.\n")
+    lines.append("# Evaluation summary\n")
     lines.append("## Per model (mean across runs)\n")
     lines.append("| Model | #runs | mean L2 | resp. rate | L2 A | L2 B | L2 C |")
     lines.append("|---|--:|--:|--:|--:|--:|--:|")

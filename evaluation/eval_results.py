@@ -6,7 +6,7 @@ untouched). Loads predictions from run_vlm_eval.py, computes localization error
 against ground-truth 3D positions (projected to 2D), and produces summary plots.
 
 Metric definition:
-  1. Verified-surface GT is the default (use_verified_surface=True), matching the
+  1. GT heights are corrected from the stage-3 surface verdicts, matching the
      paper's numbers (Appendix Table 7 / gt_surface_corrected=True).
   2. Symmetric clamping: both predicted and GT normalized coords are clamped to
      [0, 1] before L2.
@@ -251,7 +251,7 @@ def _compute_verified_gt_pos(entry: dict, direction: str) -> dict | None:
     """
     Compute corrected GT 3D position using VERIFY_DIRECTION surface verdict (stage3).
 
-    Rules (--use-verified-surface):
+    Rules:
       UP (all anchors):
         x,z = anchor bbox centre;  y = anchor_top + 0.2
 
@@ -316,7 +316,6 @@ def _evaluate_prediction(
     exploration_log_cache: dict,
     screen_width:  int = 512,
     screen_height: int = 512,
-    use_verified_surface: bool = False,
 ) -> dict:
     """
     Compute GT projection and error for one prediction row.
@@ -360,13 +359,12 @@ def _evaluate_prediction(
         result["status"] = "no_gt_position"
         return result
 
-    if use_verified_surface:
-        corrected = _compute_verified_gt_pos(entry, direction)
-        if corrected is not None:
-            result["gt_surface_corrected"] = True
-            gt_pos_3d = corrected
-        else:
-            result["gt_surface_corrected"] = False
+    corrected = _compute_verified_gt_pos(entry, direction)
+    if corrected is not None:
+        result["gt_surface_corrected"] = True
+        gt_pos_3d = corrected
+    else:
+        result["gt_surface_corrected"] = False
 
     result["gt_position_3d"] = gt_pos_3d
 
@@ -794,7 +792,6 @@ def evaluate(
     dataset_dir: Path,
     output_dir: Path,
     plot: bool = True,
-    use_verified_surface: bool = True,  # verified-surface GT is the default
 ) -> None:
     predictions, metadata = _load_predictions(predictions_path)
 
@@ -805,9 +802,6 @@ def evaluate(
     dataset_index = _load_dataset_index(dataset_dir)
     exploration_log_cache: dict[str, dict] = {}
 
-    if use_verified_surface:
-        print("GT surface correction: ENABLED (--use-verified-surface)")
-
     print(f"Loaded {len(predictions)} predictions")
     print(f"Dataset index: {len(dataset_index)} entries")
 
@@ -816,7 +810,6 @@ def evaluate(
         ev = _evaluate_prediction(
             pred, dataset_index, artifacts_dir, exploration_log_cache,
             screen_width=screen_width, screen_height=screen_height,
-            use_verified_surface=use_verified_surface,
         )
         evals.append(ev)
 
@@ -874,19 +867,6 @@ def main() -> None:
     parser.add_argument("--dataset-dir",  required=True, help="Path to the dataset directory.")
     parser.add_argument("--output-dir",   required=True, help="Directory to save eval_results.json and plots.")
     parser.add_argument("--no-plot", action="store_true", help="Skip plot generation.")
-    # verified-surface GT is the default (matches Appendix Table 7 /
-    # gt_surface_corrected=True). Use --no-verified-surface to opt out.
-    parser.add_argument(
-        "--use-verified-surface", dest="use_verified_surface",
-        action="store_true", default=True,
-        help="Correct GT height using VERIFY_DIRECTION surface verdicts stored in stage3 "
-             "(default: ON).",
-    )
-    parser.add_argument(
-        "--no-verified-surface", dest="use_verified_surface",
-        action="store_false",
-        help="Disable verified-surface GT correction (use the raw stored placements).",
-    )
     args = parser.parse_args()
 
     evaluate(
@@ -894,7 +874,6 @@ def main() -> None:
         dataset_dir=Path(args.dataset_dir),
         output_dir=Path(args.output_dir),
         plot=not args.no_plot,
-        use_verified_surface=args.use_verified_surface,
     )
 
 
