@@ -11,31 +11,6 @@ This repository contains the evaluation code for POVBench, the benchmark introdu
 Vision-Language Models* (Findings of EMNLP 2026). The dataset itself lives on the
 [Hugging Face Hub](https://huggingface.co/datasets/owl-owl/POVBench).
 
-### Models evaluated
-
-Backends are selected with `--vlm`. API model identifiers are fixed in
-`evaluation/run_vlm_eval.py`; the results in the paper were produced in May-July 2026.
-API providers retire models over time, so a given identifier may no longer be
-available. Open-weight models are unaffected.
-
-| Paper | `--vlm` | Model |
-|---|---|---|
-| MolmoPoint-8B | `molmopoint-8b` | `allenai/MolmoPoint-8B` |
-| GPT-5.4 | `gpt` | `gpt-5.4` |
-| Qwen3-VL-8B (Transformer) | `qwen` | `Qwen/Qwen3-VL-8B-Instruct` |
-| Qwen3-VL-8B (vLLM) | `qwen3vl-8b-vllm` | `Qwen/Qwen3-VL-8B-Instruct` |
-| Qwen3-VL-32B (vLLM) | `qwen3vl-32b` | `Qwen/Qwen3-VL-32B-Instruct` |
-| InternVL3-38B | `internvl3-38b-8bit` | `OpenGVLab/InternVL3-38B` (8-bit) |
-| Gemma-4 | `gemma` | `gemma-4-26b-a4b-it` |
-| Gemini-2.5-Flash | `gemini` | `gemini-2.5-flash` |
-| Gemini-Robotics-ER | `gemini-robotics` | `gemini-robotics-er-1.6-preview` |
-| RoboPoint | `robopoint` | `wentao-yuan/robopoint-v1-vicuna-v1.5-13b` |
-| Llama-3.2-Vision | `llama32-vision-11b` | `meta-llama/Llama-3.2-11B-Vision-Instruct` |
-
-RoboPoint and Llama-3.2-Vision are evaluated under Type C only. `run_vlm_eval.py
---help` lists further backends (`qwen36`, `internvl3-78b-8bit`, `roborefer-8b`, ...)
-that are available but not part of the main table.
-
 ---
 
 ## Repository structure
@@ -79,23 +54,12 @@ This is enough for the API models. See [API keys](#api-keys) and
 
 ## Dataset
 
-The dataset is hosted on the Hugging Face Hub. Download it into `dataset/POVBench`:
+Download the dataset from the Hugging Face Hub and place it under `dataset/`:
 
-```bash
-pip install -U huggingface_hub
-hf download owl-owl/POVBench --repo-type dataset --local-dir dataset/POVBench
-```
+**https://huggingface.co/datasets/owl-owl/POVBench**
 
-Or from Python:
-
-```python
-from huggingface_hub import snapshot_download
-snapshot_download(repo_id="owl-owl/POVBench", repo_type="dataset",
-                  local_dir="dataset/POVBench")
-```
-
-Every command below takes the download location as `--dataset-dir`, so any path
-works; `dataset/POVBench` is only the convention used in these examples.
+Every command below takes the location as `--dataset-dir`, so any path works;
+`dataset/POVBench` is only the convention used in these examples.
 
 ```
 dataset/POVBench/
@@ -206,6 +170,31 @@ python evaluation/eval_results.py \
 | `--output-dir` | *(required)* | Where to write `eval_results.json` and plots. |
 | `--no-verified-surface` | *(off)* | Use the raw stored GT placements instead of the stage-3 surface-verified GT (the default, matching the paper). |
 | `--no-plot` | *(off)* | Skip plot and overlay-image generation (metrics only). |
+
+### Models evaluated
+
+Backends are selected with `--vlm`. API model identifiers are fixed in
+`evaluation/run_vlm_eval.py`; the results in the paper were produced in May-July 2026.
+API providers retire models over time, so a given identifier may no longer be
+available. Open-weight models are unaffected.
+
+| Paper | `--vlm` | Model |
+|---|---|---|
+| MolmoPoint-8B | `molmopoint-8b` | `allenai/MolmoPoint-8B` |
+| GPT-5.4 | `gpt` | `gpt-5.4` |
+| Qwen3-VL-8B (Transformer) | `qwen` | `Qwen/Qwen3-VL-8B-Instruct` |
+| Qwen3-VL-8B (vLLM) | `qwen3vl-8b-vllm` | `Qwen/Qwen3-VL-8B-Instruct` |
+| Qwen3-VL-32B (vLLM) | `qwen3vl-32b` | `Qwen/Qwen3-VL-32B-Instruct` |
+| InternVL3-38B | `internvl3-38b-8bit` | `OpenGVLab/InternVL3-38B` (8-bit) |
+| Gemma-4 | `gemma` | `gemma-4-26b-a4b-it` |
+| Gemini-2.5-Flash | `gemini` | `gemini-2.5-flash` |
+| Gemini-Robotics-ER | `gemini-robotics` | `gemini-robotics-er-1.6-preview` |
+| RoboPoint | `robopoint` | `wentao-yuan/robopoint-v1-vicuna-v1.5-13b` |
+| Llama-3.2-Vision | `llama32-vision-11b` | `meta-llama/Llama-3.2-11B-Vision-Instruct` |
+
+RoboPoint and Llama-3.2-Vision are evaluated under Type C only. `run_vlm_eval.py
+--help` lists further backends (`qwen36`, `internvl3-78b-8bit`, `roborefer-8b`, ...)
+that are available but not part of the main table.
 
 ### Large local models (`qwen36`)
 
