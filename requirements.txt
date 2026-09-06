@@ -1,0 +1,21 @@
+# Core dependencies for VLM evaluation
+google-genai
+openai
+pillow
+python-dotenv
+requests            # RoboRefer HTTP backend
+
+# Required for Qwen (local inference)
+torch>=2.3          # transformers>=4.57 needs torch.compiler.is_compiling
+torchvision
+transformers>=4.57,<5  # Qwen3-VL / qwen3_5_moe architectures; 5.x is untested
+accelerate
+
+# Required for InternVL3 (--vlm internvl3-*)
+einops
+timm
+bitsandbytes   # only needed for the 8-bit variants
+
+# Metrics & plots
+numpy
+matplotlib

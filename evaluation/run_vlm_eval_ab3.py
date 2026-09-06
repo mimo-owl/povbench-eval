@@ -1,0 +1,124 @@
+"""
+Ablation 3: Chain-of-thought prompting with all exploration images.
+
+Same image set as ab0 (no annotation), but uses a step-by-step CoT prompt that
+guides the model to:
+  1. Select the best exploration image showing the described scene
+  2. Locate the observer furniture in that image
+  3. Locate the anchor (landmark) in that image
+  4. Reason about the spatial relationship from the sentence
+  5. Output {"selected_image": ..., "x": ..., "y": ...}
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from run_vlm_eval_ab0 import (
+    run_eval as _run_eval_base,
+    _prepare_images,
+)
+from run_vlm_eval import _coord_description, merge_predictions
+
+
+# ── prompt ────────────────────────────────────────────────────────────────────
+
+def _make_prompt(sentence: str, n: int, _entry: dict, w: int, h: int) -> str:
+    return (
+        f"You are the intelligent brain system of a home-assistance robot. "
+        f"You are given first-person perspective images captured during the robot's exploration of a home.\n\n"
+        f"The {n} images above (labeled Image 0 through Image {n - 1}) were all taken "
+        f"during exploration of the same single-story house. "
+        f"Each image is preceded by its label (\"Image 0:\", \"Image 1:\", etc.).\n\n"
+        f"Sentence: \"{sentence}\"\n\n"
+        f"The resident has asked the robot to retrieve an object and is describing where they last saw it. "
+        f"Your mission is to predict, as accurately as possible, where that object is located, "
+        f"based on the resident's description in the sentence above.\n\n"
+        f"Think step by step:\n\n"
+        f"Step 1 — Image selection: Among the {n} images, identify the one that best represents "
+        f"the scene described in the sentence — the image where both the furniture the observer "
+        f"was working with and the spatial landmark mentioned in the sentence are most clearly visible. "
+        f"Note its index.\n\n"
+        f"Step 2 — Observer position: In the selected image, identify the furniture the observer "
+        f"was working with at the time. Note roughly where it appears and what direction "
+        f"the observer would be facing.\n\n"
+        f"Step 3 — Anchor landmark: Identify the spatial landmark mentioned in the sentence "
+        f"in the selected image. \n\n"
+        f"Step 4 — Spatial reasoning: Based on the spatial relationship described in the sentence, "
+        f"estimate where the target object would be located in the selected image.\n\n"
+        f"Step 5 — Conclusion: State your selected image index and final coordinate estimate.\n\n"
+        f"{_coord_description(w, h)}\n\n"
+        f"IMPORTANT: When predicting coordinates, pay close attention to the origin position and "
+        f"axis directions, and ensure all values fall within the valid range.\n\n"
+        f"Write your step-by-step reasoning freely. "
+        f"End your response with ONLY the final JSON on the last line (no other text after it):\n"
+        f'{{\"selected_image\": <integer 0-{n - 1}>, \"x\": <integer 0-{w - 1}>, \"y\": <integer 0-{h - 1}>}}'
+    )
+
+
+# ── eval loop ─────────────────────────────────────────────────────────────────
+
+def run_eval(
+    dataset_dir: Path,
+    output_dir: Path,
+    vlm: str = "gemini",
+    types=None,
+    max_pairs=None,
+    worker_id: int = 0,
+    num_workers: int = 1,
+    qwen_model_dir=None,
+) -> None:
+    _run_eval_base(
+        dataset_dir=dataset_dir, output_dir=output_dir,
+        vlm=vlm, types=types, max_pairs=max_pairs,
+        worker_id=worker_id, num_workers=num_workers,
+        qwen_model_dir=qwen_model_dir, ablation_tag="ab3",
+        prepare_images_fn=_prepare_images,
+        make_prompt_fn=_make_prompt,
+        max_new_tokens=1024,
+    )
+
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    try:
+        from dotenv import load_dotenv
+        _env = Path(__file__).resolve().parents[1] / ".env"
+        if _env.exists():
+            load_dotenv(dotenv_path=_env)
+    except ImportError:
+        pass
+
+    parser = argparse.ArgumentParser(
+        description="Ablation 3: A/B with exploration images + chain-of-thought prompt.")
+    parser.add_argument("--dataset-dir", required=True)
+    parser.add_argument("--output-dir",  required=True)
+    parser.add_argument("--vlm", default="gemini",
+                        choices=["gemma", "gemini", "gemini-robotics", "gpt", "qwen"])
+    parser.add_argument("--qwen-model-dir", default=None)
+    parser.add_argument("--types", nargs="+", default=["a", "b"], choices=["a", "b"])
+    parser.add_argument("--max-pairs", type=int, default=None)
+    parser.add_argument("--worker-id",   type=int, default=0)
+    parser.add_argument("--num-workers", type=int, default=1)
+    parser.add_argument("--merge", action="store_true")
+    args = parser.parse_args()
+
+    output_dir = Path(args.output_dir)
+    if args.merge:
+        merge_predictions(output_dir, args.num_workers)
+        return
+
+    run_eval(
+        dataset_dir=Path(args.dataset_dir), output_dir=output_dir,
+        vlm=args.vlm, types=args.types, max_pairs=args.max_pairs,
+        worker_id=args.worker_id, num_workers=args.num_workers,
+        qwen_model_dir=args.qwen_model_dir,
+    )
+
+
+if __name__ == "__main__":
+    main()

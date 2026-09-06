@@ -1,0 +1,29 @@
+# Environment, API keys
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Evaluation outputs & generated artifacts
+eval_results/
+results/
+
+# Dataset (downloaded separately, not tracked)
+dataset/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local analysis scripts (not part of the released pipeline)
+evaluation/recompute_*.py
