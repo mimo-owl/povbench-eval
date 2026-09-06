@@ -279,6 +279,13 @@ GEMINI_API_KEY=<key> python evaluation/run_vlm_eval.py ...
 
 ---
 
+## Issues
+
+Found a bug, or something that could work better? Please open an
+[issue](https://github.com/mimo-owl/povbench-eval/issues).
+
+---
+
 ## Citation
 
 ```bibtex
